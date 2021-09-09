@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="xmlRequest.js"></script>
+  <script>
+    function showDemoSample() {
+      let url = location.href
+      let request = getXmlHttpRequest()
+      request.open('GET', url, false)
+      request.send(null)
+      console.log(request.responseText);
+    }
+  </script>
+  <title>Document</title>
+</head>
+<body>
+  <h1>Example request from server</h1>
+<p>
+  <button onClick="showDemoSample()">Try</button>
+  </p>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>Книги по категориям</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="Content-Language" content="ru"/>
+	<link rel="stylesheet" type="text/css" href="lab-2-2.css"/>
+	<script type="text/javascript" src="../../xmlRequest.js"></script>
+	<script type="text/javascript">
+		/*
+		**
+		** Задание 1. Код вставлять сюда
+		**
+		*/
+    function fillCategories() {
+      let req = getXmlHttpRequest()
+      req.onreadystatechange = function() {
+        if(req.readyState != 4) return;
+        let selCategory = document.getElementById('selCategory')
+        let responseText = new String(req.responseText)
+        let cats = responseText.split('\n')
+        for(let i = 0; i < cats.length; i++) {
+          if(cats[i] == '') continue;
+          let parts = cats[i].split(':')
+          let option = document.createElement('options')
+          option.setAttribute('value', parts[0])
+          let optionText = document.createTextNode(parts[1])
+          option.appendChild(optionText)
+          selCategory.appendChild(option);
+        }
+        selCategory.size = selCategory.options.length
+      }
+      req.open('GET', 'getcategories.php', true)
+      req.send(null)
+    }
+
+    /*
+    **
+    **	Задание 2. Выборка книг
+    **
+    */
+    function Book(author, title, image) {
+      this.author = author
+      this.title = title
+      this.image = image
+    }
+
+    let books = []
+
+    function showBooks() {
+      let selCategory = document.getElementById('selCategory')
+      if(selCategory.selectedIndex < 0) {
+				alert('Need to chose category')
+	      return
+      }
+      let catId = selCategory.options[selCategory.selectedIndex].value
+	    let req = getXmlHttpRequest()
+	    req.onreadystatechange = function() {
+		    if(req.readyState !=4) return
+		    let responseText = String(req.responseText)
+		    let bookStrings = responseText.split('\n')
+		    books = []
+		    for(let i = 0; i < bookStrings.length; i++){
+		    	if(bookStrings[i] == '') continue;
+		    	let parts = bookStrings[i].split('|')
+			    books[books.length] = new Book(parts[0], parts[1], parts[2]);
+		    }
+		    let tableBooks = document.getElementById('tableBooks')
+		    while(tableBooks.hasChildNodes()){
+		    	tableBooks.removeChild(tableBooks.lastChild)
+		    }
+		    for(let i =0; i<books.length; i++) {
+		    	let tr = tableBooks.insertRow(tableBooks.rows.length)
+		    }
+		    // author))
+				let tdTitle = tr.insertCell(tr.cells.length)
+				tdTitle.appendChild(document.createTextNode(books[i].title))
+		    tr.onmouseover = new Function('trHighLight(this, "#fcc")')
+		    tr.onmouseout = new Function('trHighLight(this, "")')
+		    tr.title = books[i].image
+		    tr.onclick = new Function('showImage(this)')
+	    }
+    }
+    let postData = 'cat=' + catId;
+    req.open('POST', 'postbooksbycat.php', true)
+		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+		// req.setRequestHeader('Content-Length', postData.length)
+		req.send(postData)
+
+
+
+    /*
+    **
+    **	Задание 3. Показ изображений
+    **
+    */
+		function trHighLight(trObject, color) {
+			if(color !='') {
+				trObject.style.backgroundColor = color
+			} else {
+				trObject.style.backgroundColor = ''
+			}
+		}
+		function isExists(url) {
+			let req = getXmlHttpRequest();
+			req.open('HEAD', url, false)
+			req.send(null)
+			return (req.status == 200)
+		}
+		function showImage(trObject) {
+			let imagePath = '../../images/'
+			let image = imagePath + trObject.title
+			let divBookInfo = document.getElementById('divBookInfo')
+			let img = divBookInfo.getElementsByTagName('img')[0]
+			if(isExists(image)) {
+				img.src = image
+				divBookInfo.style.display = 'block'
+			}else {
+				img.src = ''
+				divBookInfo.style.display = ''
+			}
+		}
+	</script>
+</head>
+<body>
+	<h1>Книги по категориям</h1>
+	<form action="#" onsubmit="return false">
+		<div>
+			<label for="selCategory">Категория</label>
+			<select id="selCategory"></select>
+			<button onclick="">Показать</button>
+		</div>
+		
+		<div id="divBookInfo">
+			<img src="" alt=""/>
+		</div>			
+	</form>
+	
+	<table id="tableBooks"></table>
+	
+
+	
+</body>
+</html>
+

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>Получение данных с сервера</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="Content-Language" content="ru"/>
+	<script type="text/javascript" src="../xmlRequest.js"></script>
+	<script type="text/javascript">
+		let req;
+
+    // Показ текста, полученного из файла
+    function getText(fileName) {
+      req = getXmlHttpRequest()
+      req.onreadystatechange = function() {
+        if(req.readyState === 4) {
+          if(req.status != 200) {
+            alert(req.status + ':' + req.statusText)
+          } else {
+            alert(req.responseText)
+          }
+        }
+      }
+      req.open('GET', fileName, true)
+      req.send(null)
+    }
+
+    // Показ заголовков, полученных от сервера
+    function getInfo(fileName) {
+      req = getXmlHttpRequest()
+      req.onreadystatechange = function() {
+        if(req.readyState === 4) {
+          alert(
+            'Size of file:\t' + req.getResponseHeader('Content-Length') + '\n' + "File change:\t" + req.getResponseHeader("Last-Modified")
+          )
+	        alert(req.getAllResponseHeaders())
+        }
+      }
+      req.open('GET', fileName, true)
+      req.send(null)
+    }
+
+	</script>
+</head>
+<body>
+	<h1>Получение данных с сервера</h1>
+	<div id="sync">
+		<button onclick="getText('hello.txt')">Текст из файла</button>
+		<button onclick="getText('badFile.txt')">Файла нет</button>
+		<button onclick="getInfo('hello.txt')">Информация о файле</button>
+	</div>
+</body>
+</html>
