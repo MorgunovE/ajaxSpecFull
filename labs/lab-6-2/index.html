@@ -2,61 +2,123 @@
 <html lang="ru">
 <head>
 	<title>Понедельник начинается в субботу</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Language" content="ru" />
-	<link rel="stylesheet" type="text/css" href="lab-6-2.css" />
-	<script type="text/javascript" src="../xmlhttprequest.js"></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="Content-Language" content="ru"/>
+	<link rel="stylesheet" type="text/css" href="lab-6-2.css"/>
+	<script type="text/javascript" src="../../xmlRequest.js"></script>
 	<script type="text/javascript" src="xslt.js"></script>
 	<script type="text/javascript">
 		// Адреса сервера
-		var serverXml = "server/get-section-xml.php";
-		var serverHtml = "server/get-section-html.php";
-		
-		// XSLT преобразование
-		var fb2html;
-		
-	
-		/* 
-		**
-		**	Задание 1. Загрузка главы книги
-		**
-		*/
-		function getChapter(no){
-	
-		}
-		
-		/* 
-		**
-		**	Задание 2. Показ главы книги 
-		**
-		*/
-		function showChapter(xmlDOM, currentChapter){
-			// Узнаем общее число глав
-			var chapterCount = xmlDOM.documentElement.firstChild.getAttribute("count");
+    var serverXml = "server/get-section-xml.php";
+    var serverHtml = "server/get-section-html.php";
+    let bookmarkName = 'chapter';
 
-		}
+    // XSLT преобразование
+    var fb2html;
 
-		/*
-		** Инициализация страницы
-		*/
-		window.onload = function()
-		{
-			// Покажем сообщение пользователю
-			var divMessageLoad = document.getElementById("divMessageLoad");
-			divMessageLoad.style.display = "block";
-			
-			// Загрузка XSLT преобразования
-			var req = getXmlHttpRequest();
-			req.open("GET", "server/fb2html.xsl", false);
-			req.send(null);
-			fb2html = req.responseXML;
-			
-			// Уберем сообщение пользователю
-			divMessageLoad.style.display = "none";
-			
-			// Показ первой главы
-			getChapter(1);
-		}
+
+    /*
+    **
+    **	Задание 1. Загрузка главы книги
+    **
+    */
+    let stateObj = {}
+
+    // save page in bars
+    function saveBookmark(name, chapter) {
+      window.localStorage.setItem(name, chapter)
+    }
+
+    window.addEventListener("popstate", function(event) {
+      // request page from server
+      if( !event.state) {
+        getChapter(1)
+      } else {
+        saveBookmark(bookmarkName, event.state.page)
+        // request page from server
+        getAction(event.state.page)
+      }
+    })
+
+    function getAction(no) {
+      // request page from server
+      let req = getXmlHttpRequest()
+      req.onreadystatechange = function() {
+        if(req.readyState != 4) return;
+        // take DOM document
+        let xmlDOM = req.responseXML;
+        // if haven't error
+        if(xmlDOM) showChapter(xmlDOM, no);
+      }
+      req.open('GET', serverXml + '?no=' + no, true);
+      req.setRequestHeader('Content-Type', 'text/xml')
+      req.send(null)
+    }
+
+    function getChapter(no) {
+      // message for user
+      document.getElementById('divMessageLoad').style.display = 'block';
+      stateObj.page = no;
+      history.pushState(stateObj, '', '#' + no);
+      saveBookmark(bookmarkName, no)
+      // request page from server
+      getAction(no);
+    }
+
+    /*
+    **
+    **	Задание 2. Показ главы книги
+    **
+    */
+    function showChapter(xmlDOM, currentChapter) {
+      // Узнаем общее число глав
+      var chapterCount = Number(xmlDOM.documentElement.firstChild.getAttribute("count"));
+      // implemented links prev and next
+      let divChapters = document.getElementById('divChapters');
+      let previousChapter = Number(currentChapter) - 1;
+      let nextChapter = Number(currentChapter) + 1;
+
+      divChapters.innerHTML = '';
+      if(previousChapter > 0) divChapters.innerHTML += '<a href="' + serverHtml + '?no=' + previousChapter + '" onclick="getChapter(' + previousChapter + ');return false">Prev page</a>&nbsp;';
+      if(nextChapter < chapterCount) divChapters.innerHTML += '&nbsp;<a href="' + serverHtml + '?no=' + nextChapter + '" onclick="getChapter(' + nextChapter + ');return false">Next page</a>';
+
+      // take reformat
+	    let html = xsltTransform(xmlDOM, fb2html);
+	    let divResult = document.getElementById('divResult');
+	    divResult.innerHTML = html;
+
+	    // blur message for user
+	    document.getElementById('divMessageLoad').style.display = '';
+    }
+
+    /*
+    ** Инициализация страницы
+    */
+    window.onload = function() {
+      // Покажем сообщение пользователю
+      var divMessageLoad = document.getElementById("divMessageLoad");
+      divMessageLoad.style.display = "block";
+
+      // Загрузка XSLT преобразования
+      var req = getXmlHttpRequest();
+      req.open("GET", "server/fb2html.xsl", false);
+      req.send(null);
+      fb2html = req.responseXML;
+
+      // Уберем сообщение пользователю
+      divMessageLoad.style.display = "none";
+
+      function readBookmark(name) {
+      	if(localStorage.getItem(name)) {
+      		return Number(window.localStorage.getItem(name))
+	      } else {
+      		return 1;
+	      }
+      }
+
+      // Показ первой главы or saved page
+      getChapter(readBookmark(bookmarkName));
+    }
 	</script>
 </head>
 <body>

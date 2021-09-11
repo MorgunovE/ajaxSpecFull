@@ -13,12 +13,10 @@ function showXML(xml){
 }
 
 // Функция загружает требуемый XML файл в синхронном режиме
-let xnlCache = {};
 function loadXML(url){
-	if(xnlCache[url]) return xnlCache[url];
 	var reqMessage = getXmlHttpRequest();
 	reqMessage.open("GET", url, false);
 	reqMessage.send(null);
-	xnlCache[url] = reqMessage.responseXML
-	return xnlCache[url];
+	
+	return reqMessage.responseXML;
 }

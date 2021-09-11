@@ -1,0 +1,6 @@
+# Требуется аутентификация
+AuthType Basic  
+AuthName "Private zone. Only for valid users!"
+AuthUserFile  "C:\ProgI\OSPanel\domains\ajax\auth\base_auth/.htpasswd"
+
+require valid-user
